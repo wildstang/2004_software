@@ -1,0 +1,386 @@
+' PROGRAM:    2003 EDU RC Default Software
+' Written by: Innovation First, Inc.
+' Date:       2002 Nov 15
+'
+' Define BS2-SX Project Files
+'
+' {$STAMP BS2SX}
+
+
+'=============================================================================
+'========== DECLARE VARIABLES ================================================
+'=============================================================================
+'  Below is a list of declared input and output variables.  Comment or un-comment
+'  the variables as needed.  Declare any additional variables required in
+'  your main program loop.  Note that you may only use 26 total variables.
+
+
+'---------- Operator Interface (OI) - Analog Inputs --------------------------
+
+p1_x      VAR Byte  'Port 1, X-axis on Joystick
+p2_x      VAR Byte  'Port 2, X-axis on Joystick
+p3_x      VAR Byte  'Port 3, X-axis on Joystick
+p4_x      VAR Byte  'Port 4, X-axis on Joystick
+
+p1_y      VAR Byte  'Port 1, Y-axis on Joystick
+p2_y      VAR Byte  'Port 2, Y-axis on Joystick
+p3_y      VAR Byte  'Port 3, Y-axis on Joystick
+p4_y      VAR Byte  'Port 4, Y-axis on Joystick
+
+p1_wheel    VAR Byte  'Port 1, Wheel on Joystick
+p2_wheel    VAR Byte  'Port 2, Wheel on Joystick
+p3_wheel    VAR Byte  'Port 3, Wheel on Joystick
+p4_wheel    VAR Byte  'Port 4, Wheel on Joystick
+
+p1_aux    VAR Byte  'Port 1, Aux on Joystick
+p2_aux    VAR Byte  'Port 2, Aux on Joystick
+p3_aux    VAR Byte  'Port 3, Aux on Joystick
+p4_aux    VAR Byte  'Port 4, Aux on Joystick
+
+
+
+'---------- Operator Interface - Digital Inputs ------------------------------
+
+oi_swA    VAR Byte  'OI Digital Switch Inputs 1 thru 8
+oi_swB    VAR Byte  'OI Digital Switch Inputs 9 thru 16
+
+
+'---------- Robot Controller (RC) - Analog Inputs ----------------------------
+
+'sensor1    VAR byte  'RC Analog Input 1, connector pin 2
+'sensor2    VAR byte  'RC Analog Input 2, connector pin 16
+'sensor3    VAR byte  'RC Analog Input 3, connector pin 5
+'sensor4    VAR byte  'RC Analog Input 4, connector pin 19
+'sensor5    VAR byte  'RC Analog Input 5, connector pin 8
+'sensor6    VAR byte  'RC Analog Input 6, connector pin 22
+'sensor7    VAR byte  'RC Analog Input 7, connector pin 11
+'bat_volt    VAR byte  'RC Analog Input 8, hardwired to the Battery
+      'Vin = ((4.7/14.7)* Battery voltage)-0.4
+      'Binary Battery Voltage = (Vin/5.0 V)*255
+
+
+'---------- Robot Controller - Digital Inputs --------------------------------
+
+rc_swA    VAR Byte  'RC Digital Inputs 1 thru 8
+rc_swB    VAR Byte  'RC Digital Inputs 9 thru 16
+
+
+'---------- Robot Controller - Digital Outputs -------------------------------
+
+relayA    VAR Byte
+relayB    VAR Byte
+
+
+'---------- Misc. ------------------------------------------------------------
+
+'packet_num    VAR byte
+'delta_t    VAR byte
+PB_mode    VAR Byte
+drive_R    VAR Byte  'Output Drive Right
+drive_L    VAR Byte  'Output Drive Left
+temp      VAR Byte  'Used as a temperary variable.
+
+'=============================================================================
+'========== DEFINE ALIASES ===================================================
+'=============================================================================
+'  Aliases are variables which are sub-divisions of variables defined
+'  above.  Aliases don't require any additional RAM.
+
+
+'---------- Aliases for each OI switch input ---------------------------------
+'  Below are aliases for the digital inputs located on the Operator Interface.
+'  Ports 1 & 3 have their inputs duplicated in ports 4 & 2 respectively.  The
+'  inputs from ports 1 & 3 may be disabled via the 'Disable' dip switch
+'  located on the Operator Interface.  See Users Manual for details.
+
+p1_sw_trig  VAR oi_swA.BIT0  'Joystick Trigger Button,  same as Port4 pin5
+p1_sw_top  VAR oi_swA.BIT1  'Joystick Top Button,    same as Port4 pin8
+p1_sw_aux1  VAR oi_swA.BIT2  'Aux input,        same as Port4 pin9
+p1_sw_aux2  VAR oi_swA.BIT3  'Aux input,        same as Port4 pin15
+
+p3_sw_trig  VAR oi_swA.BIT4  'Joystick Trigger Button,  same as Port2 pin5
+p3_sw_top  VAR oi_swA.BIT5  'Joystick Top Button,    same as Port2 pin8
+p3_sw_aux1  VAR oi_swA.BIT6  'Aux input,        same as Port2 pin9
+p3_sw_aux2  VAR oi_swA.BIT7  'Aux input,        same as Port2 pin15
+
+p2_sw_trig  VAR oi_swB.BIT0  'Joystick Trigger Button
+p2_sw_top  VAR oi_swB.BIT1  'Joystick Top Button
+p2_sw_aux1  VAR oi_swB.BIT2  'Aux input
+p2_sw_aux2  VAR oi_swB.BIT3  'Aux input
+
+p4_sw_trig  VAR oi_swB.BIT4  'Joystick Trigger Button
+p4_sw_top  VAR oi_swB.BIT5  'Joystick Top Button
+p4_sw_aux1  VAR oi_swB.BIT6  'Aux input
+p4_sw_aux2  VAR oi_swB.BIT7  'Aux input
+
+
+'---------- Aliases for each RC switch input ---------------------------------
+'  Below are aliases for the digital inputs located on the Robot Controller.
+
+rc_sw1    VAR rc_swA.BIT0
+rc_sw2    VAR rc_swA.BIT1
+rc_sw3    VAR rc_swA.BIT2
+rc_sw4    VAR rc_swA.BIT3
+rc_sw5    VAR rc_swA.BIT4
+rc_sw6    VAR rc_swA.BIT5
+rc_sw7    VAR rc_swA.BIT6
+rc_sw8    VAR rc_swA.BIT7
+rc_sw9    VAR rc_swB.BIT0
+rc_sw10    VAR rc_swB.BIT1
+rc_sw11    VAR rc_swB.BIT2
+rc_sw12    VAR rc_swB.BIT3
+rc_sw13    VAR rc_swB.BIT4
+rc_sw14    VAR rc_swB.BIT5
+rc_sw15    VAR rc_swB.BIT6
+rc_sw16    VAR rc_swB.BIT7
+
+
+'---------- Aliases for each RC Relay outputs ---------------------------------
+'  Below are aliases for the relay outputs located on the Robot Controller.
+
+relay1_fwd    VAR RelayA.BIT0
+relay1_rev    VAR RelayA.BIT1
+relay2_fwd    VAR RelayA.BIT2
+relay2_rev    VAR RelayA.BIT3
+relay3_fwd    VAR RelayA.BIT4
+relay3_rev    VAR RelayA.BIT5
+relay4_fwd    VAR RelayA.BIT6
+relay4_rev    VAR RelayA.BIT7
+
+relay5_fwd    VAR RelayB.BIT0
+relay5_rev    VAR RelayB.BIT1
+relay6_fwd    VAR RelayB.BIT2
+relay6_rev    VAR RelayB.BIT3
+relay7_fwd    VAR RelayB.BIT4
+relay7_rev    VAR RelayB.BIT5
+relay8_fwd    VAR RelayB.BIT6
+relay8_rev    VAR RelayB.BIT7
+
+
+'---------- Aliases for the Pbasic Mode Byte (PB_mode) -----------------------------------------------
+'  Bit 7 of the PB_mode byte (aliased as comp_mode below) indicates the status
+'  of the Competition Control, either Enabled or Disabled.  This indicates the
+'  starting and stopping of rounds at the competitions.
+'  Comp_mode is indicated by a solid "Disabled" LED on the Operator Interface.
+'  Comp_mode = 1 for Enabled, 0 for Disabled.
+'
+'  Bit 6 of the PB_mode byte (aliased as auton_mode below) indicates the status
+'  of the Autonomous Mode, either Autonomous or Normal.  This indicates when
+'  the robot must run on its own programming.  When in Autonomous Mode, all
+'  OI analog inputs are set to 127 and all OI switch inputs are set to 0 (zero).
+'  Auton_mode is indicated by a blinking "Disabled" LED on the Operator Interface.
+'  Auton_mode = 1 for Autonomous, 0 for Normal.
+'
+'  Autonomous Mode can be turned ON by setting the RC to Team 0 (zero).
+'
+'  Bit 5 of the PB_mode byte (aliased as user_display_mode below) indicates when
+'  the user selects the "User Mode" on the OI.  PB_mode.bit5 is set to 1 in "User Mode".
+'  When the user selects channel, team number, or voltage, PB_mode.bit5 is set to 0
+'  When in "User Mode", the eight Robot Feedback LED are turned OFF.
+'  Note: "User Mode" is identified by the letter u in the left digit (for 4 digit OI's)
+'  Note: "User Mode" is identified by decimal places on the right two digits (for 3 digit OI's)
+
+comp_mode    VAR PB_mode.BIT7
+auton_mode    VAR PB_mode.BIT6
+user_display_mode  VAR PB_mode.BIT5
+
+
+
+'=============================================================================
+'========= DEFINE CONSTANTS FOR INITIALIZATION ===============================
+'=============================================================================
+'  The initialization code is used to select the input data used by PBASIC.
+'  The Master micro-processor (uP) sends the data you select to the BS2SX
+'  PBASIC uP.  You may select up to 26 constants, corresponding
+'  to 26 variables, from the 32 available to you.  Make sure that you have
+'  variables for all the bytes recieved in the serin command.
+'
+'  The constants below have a "c_" prefix, as compared to the variables that
+'  they will represent.
+'
+'  Set the Constants below to 1 for each data byte you want to recieve.
+'  Set the Constants below to 0 for the unneeded data bytes.
+
+
+'---------- Set the Initialization constants you want to read ----------------
+
+c_p1_y    CON  1
+c_p2_y    CON  1
+c_p3_y    CON  1
+c_p4_y    CON  1
+
+c_p1_x    CON  1
+c_p2_x    CON  1
+c_p3_x    CON  1
+c_p4_x    CON  1
+
+c_p1_wheel    CON  1
+c_p2_wheel    CON  1
+c_p3_wheel    CON  1
+c_p4_wheel    CON  1
+
+c_p1_aux    CON  1
+c_p2_aux    CON  1
+c_p3_aux    CON  1
+c_p4_aux    CON  1
+
+c_oi_swA    CON  1
+c_oi_swB    CON  1
+
+c_sensor1    CON  0
+c_sensor2    CON  0
+c_sensor3    CON  0
+c_sensor4    CON  0
+c_sensor5    CON  0
+c_sensor6    CON  0
+c_sensor7    CON  0
+c_batt_volt    CON  0
+
+c_rc_swA    CON  0
+c_rc_swB    CON  0
+
+c_delta_t    CON  0
+c_PB_mode    CON  1
+c_packet_num  CON  0
+c_res01    CON  0
+
+'---------- Initialization Constant VOLTAGE - USER DEFINED -------------------
+'  This is the 'Low Battery' detect voltage.  The 'Low Battery' LED will
+'  blink when the voltage drops below this value.
+'  Basically, the value = ((DESIRED FLASH VOLTAGE * 16.46) - 8.35)
+'  Example, for a 6.5 Volt Flash trigger, set value = 99.
+
+dataInitVolt  CON   99
+
+
+'=============================================================================
+'========== DEFINE CONSTANTS (DO NOT CHANGE) =================================
+'=============================================================================
+' Baud rate for communications with User CPU
+OUTBAUD    CON   20  '(62500, 8N1, Noninverted)
+INBAUD    CON   20  '(62500, 8N1, Noninverted)
+
+USERCPU    CON   4
+FPIN      CON   1
+COMA      CON   1
+COMB      CON   2
+COMC      CON   3
+
+
+'=============================================================================
+'========== MAIN PROGRAM =====================================================
+'=============================================================================
+
+
+'---------- Input & Output Declarations --------------------------------------
+
+OUTPUT    COMB
+INPUT      COMA
+INPUT      COMC
+
+OUTPUT    7  'define Basic Run LED on RC => out7
+
+OUTPUT        8  'define Robot Feedback LED => out8  => PWM1 Green
+OUTPUT        9  'define Robot Feedback LED => out9  => PWM1 Red
+OUTPUT        10  'define Robot Feedback LED => out10 => PWM2 Green
+OUTPUT        11  'define Robot Feedback LED => out11 => PWM2 Red
+OUTPUT        12  'define Robot Feedback LED => out12 => Relay1 Red
+OUTPUT        13  'define Robot Feedback LED => out13 => Relay1 Green
+OUTPUT        14  'define Robot Feedback LED => out14 => Relay2 Red
+OUTPUT        15  'define Robot Feedback LED => out15 => Relay2 Green
+
+
+'---------- Initialize Inputs & Outputs --------------------------------------
+
+OUT7  = 1    'Basic Run LED on RC
+OUT8  = 0    'PWM1 LED - Green
+OUT9  = 0    'PWM1 LED - Red
+OUT10 = 0    'PWM2 LED - Green
+OUT11 = 0    'PWM2 LED - Red
+OUT12 = 0    'Relay1 LED - Red
+OUT13 = 0    'Relay1 LED - Green
+OUT14 = 0    'Relay2 LED - Red
+OUT15 = 0    'Relay2 LED - Green
+
+
+
+'=============================================================================
+'========== PBASIC - MASTER uP INITIALIZATION ROUTINE ========================
+'=============================================================================
+'  DO NOT CHANGE THIS!  DO NOT MOVE THIS!
+'  The init routine sends 5 bytes to the Master uP, defining which data bytes to receive.
+'  1)  Collect init.
+'  2)  Lower the COMA line, which is the clk line for the shift out command.
+'  3)  Lower COMB line to tell pic that we are ready to send init data.
+'  4)  Wait for pic to lower the COMC line, signaling pic is ready for data.
+'  5)  Now send out init dat to pic, all 5 bytes.
+'  6)  Now set direction and levels for the COMA and COMB pins.
+
+tempA      CON  c_p3_x <<1 + c_p4_x <<1 + c_p1_x <<1 + c_p2_x <<1 + c_rc_swB
+dataInitA    CON  tempA <<1 + c_rc_swA <<1 + c_oi_swB <<1 + c_oi_swA
+tempB      CON  c_sensor4 <<1 + c_sensor3 <<1 + c_p1_y <<1 + c_p2_y <<1 + c_sensor2
+dataInitB    CON  tempB <<1 + c_sensor1 <<1 + c_packet_num <<1 + c_PB_mode
+tempC      CON  c_batt_volt <<1 + c_sensor7 <<1 + c_p1_wheel <<1 + c_p2_wheel <<1 + c_sensor6
+dataInitC    CON  tempC <<1 + c_sensor5 <<1 + c_p3_y <<1 + c_p4_y
+tempD      CON  c_res01 <<1 + c_delta_t <<1 + c_p3_aux <<1 + c_p4_aux <<1 + c_p1_aux
+dataInitD    CON  tempD <<1 + c_p2_aux  <<1 + c_p3_wheel <<1 + c_p4_wheel
+
+OUTPUT    COMA
+LOW      COMA
+LOW      COMB
+Wait_init:  IF IN3 = 1 THEN Wait_init:
+SHIFTOUT    COMB,COMA,1, [dataInitA,dataInitB,dataInitC,dataInitD,dataInitVolt]
+INPUT      COMA
+HIGH      COMB
+
+
+
+'=============================================================================
+'========== MAIN LOOP ========================================================
+'=============================================================================
+
+MainLoop:
+
+
+   '---------- Serin Command - Get Data from Master uP --------------------------
+   '  Construct the "serin" command using the following rules:
+   '  1) There must be one variable for every input defined in the "Define Constants for Init" section.
+   '  2) The order must match the order in the EXAMPLE SERIN COMMAND below.
+   '  3) The total number of all variables may not exceed 26.
+   '  4) Only use one "Serin" command.
+   '  5) The Serin command must occupy one line.
+   '
+   '  If you see a BASIC INIT ERR on the Robot Controller after programming and pressing RESET, then
+   '  there is a problem with the Serin command below.  Check the number of variables.  A BASIC INIT ERR
+   '  will not occur if you have the variables in the wrong order, however your code will not work correctly.
+   '
+   '  EXAMPLE SERIN COMMAND
+   '  This example exceed the 26 variable limit and is not on one line:
+   '
+   '  Serin COMA\COMB, INBAUD, [oi_swA,oi_swB,rc_swA,rc_swB,p2_x,p1_x,p4_x,p3_x,PB_mode,packet_num,sensor1,
+   '             sensor2,p2_y,p1_y,sensor3,sensor4,p4_y,p3_y,sensor5,sensor6,p2_wheel,p1_wheel,
+   '             sensor7,sensor8,p4_wheel,p3_wheel,p2_aux,p1_aux,p4_aux,p3_aux,delta_t,res01]
+   '
+   SERIN COMA\COMB, INBAUD, [oi_swA,oi_swB,p2_x,p1_x,p4_x,p3_x,PB_mode,p2_y,p1_y,p4_y,p3_y,p2_wheel,p1_wheel,p4_wheel,p3_wheel,p2_aux,p1_aux,p4_aux,p3_aux]
+
+
+   '---------- Blink BASIC RUN LED ----------------------------------------------
+   TOGGLE 7      'Basic Run LED on the RC is toggled ON/OFF every loop.
+
+
+
+   '=============================================================================
+   '========== PERFORM OPERATIONS ===============================================
+   '=============================================================================
+
+   ' IF YOU CHANGE THIS LINE BELOW you must also modify oi_data.h!  See that
+   ' file for more details.
+   SEROUT 16, 1, [255,255,p1_x,p2_x,p3_x,p4_x,oi_swA,p1_y,p2_y,p3_y,p4_y,oi_swB,p1_wheel,p2_wheel,p3_wheel,p4_wheel,PB_mode,p1_aux,p2_aux,p3_aux,p4_aux]
+
+   SEROUT USERCPU, OUTBAUD, [255,255,drive_R,relayA,drive_L,relayB,drive_R,drive_L,p1_x,p3_x,p1_wheel,p3_wheel]
+
+
+GOTO MainLoop:
+
+
+STOP
